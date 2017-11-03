@@ -40,15 +40,25 @@
 			<version>${scala.version}</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.9.1</version>
 		</dependency>
-
-
-
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.24</version>
+			<scope>test</scope>
+		</dependency>
 
 
 		<!-- elasticsearch -->
@@ -57,11 +67,11 @@
 			<artifactId>elasticsearch</artifactId>
 			<version>5.6.3</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.elasticsearch.plugin</groupId> -->
-<!-- 			<artifactId>transport-netty4-client</artifactId> -->
-<!-- 			<version>5.6.3</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.elasticsearch.plugin</groupId> -->
+		<!-- <artifactId>transport-netty4-client</artifactId> -->
+		<!-- <version>5.6.3</version> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.elasticsearch.client</groupId>
 			<artifactId>transport</artifactId>
@@ -102,7 +112,11 @@
 			<artifactId>jackson-core</artifactId>
 			<version>2.9.2</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>2.3.0</version>
+		</dependency>
 
 
 	</dependencies>
