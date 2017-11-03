@@ -29,9 +29,12 @@ import java.net.URL
 import scala.io.Source
 import examples.GOT_DATA
 
+/**
+ * CHECK: http://localhost:9200/series/got/_search
+ */
 object MainES extends App {
 
-  val es = ES
+  val es = ES.local
   es.start()
 
   val (_index, _type) = ("series", "got")
@@ -42,8 +45,6 @@ object MainES extends App {
       case (episode, idx) =>
         es.indexer.index(_index, _type, episode._1)(episode._2)
     }
-
-  //  CHECK: http://localhost:9200/series/got/_search
 
 }
 
