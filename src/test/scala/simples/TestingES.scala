@@ -1,31 +1,18 @@
+
+
 package simples
 
 import org.junit.Before
-import examples.GOT_DATA
 import org.junit.After
 import org.junit.Test
 import scala.io.Source
-
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 import com.fasterxml.jackson.databind.ObjectMapper
-import java.net.URL
-import com.jayway.jsonpath.JsonPath
-import com.jayway.jsonpath.TypeRef
-import org.elasticsearch.transport.client.PreBuiltTransportClient
-import org.elasticsearch.common.settings.Settings
-import java.net.InetAddress
-import org.elasticsearch.common.transport.InetSocketTransportAddress
 import scala.util.Try
 import org.junit.Assert
-import org.slf4j.LoggerFactory
-import org.elasticsearch.common.xcontent.XContentType
-import org.elasticsearch.action.update.UpdateRequest
-
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import org.elasticsearch.index.query.QueryBuilders
-import com.typesafe.config.ConfigFactory
+import scala.io.Codec.string2codec
 
 class TestingES {
 

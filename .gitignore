@@ -1,3 +1,4 @@
+.cache-tests
 .cache-main
 .classpath
 .project
@@ -6,4 +7,3 @@ target/
 *~
 *.class
 *.log
-
