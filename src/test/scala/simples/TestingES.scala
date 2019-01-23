@@ -22,7 +22,7 @@ class TestingES {
 
   val (_index, _type) = ("series", "got")
 
-  val es = ES.remote
+  val es = ES.local
 
   @Before
   def before() {

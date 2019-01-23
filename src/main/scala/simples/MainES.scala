@@ -27,7 +27,8 @@ import org.elasticsearch.common.xcontent.XContent
 import scala.util.Try
 import java.net.URL
 import scala.io.Source
-import examples.GOT_DATA
+
+import examples.got.GOT_DATA
 
 /**
  * CHECK: http://localhost:9200/series/got/_search
@@ -39,7 +40,7 @@ object MainES extends App {
 
   val (_index, _type) = ("series", "got")
 
-  GOT_DATA.episodes
+  GOT_DATA.episodes_local
     .zipWithIndex
     .foreach {
       case (episode, idx) =>

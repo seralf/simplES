@@ -15,8 +15,6 @@ import java.util.Collections
 
 object EmbeddedNode {
 
-  //  SEE: http://api.tvmaze.com/singlesearch/shows?q=game-of-thrones&embed=episodes
-
   def create(settings: Settings) = {
     val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
     val plugins: Collection[Class[_ <: Plugin]] = List(classOf[Netty4Plugin])
