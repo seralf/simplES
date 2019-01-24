@@ -123,6 +123,9 @@ protected class ESDocumentHandler(client: Client) {
 
 }
 
+/**
+ * A simple object for handling bulk loading, using the current configurated node (remote, or embedded).
+ */
 object ESIndexer {
   def apply(client: Client) = new ESIndexer(client)
 }
@@ -135,6 +138,9 @@ protected class ESIndexer(client: Client) {
   import org.elasticsearch.common.unit.ByteSizeValue;
   import org.elasticsearch.common.unit.TimeValue;
 
+  val logger = LoggerFactory.getLogger(this.getClass)
+
+  // TODO: externalization of config values.
   private val builder = BulkProcessor.builder(client, bulk_listener)
     .setBulkActions(50)
     .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
@@ -160,7 +166,7 @@ protected class ESIndexer(client: Client) {
 
   def index(_index: String, _type: String, _id: String = null)(_source: String = "{}") = Try {
 
-    println(s"""indexing ${_index}/${_type}/${_id}""")
+    logger.debug(s"""indexing ${_index}/${_type}/${_id}""")
 
     val _request = new IndexRequest(_index, _type, _id)
       .source(_source, XContentType.JSON)
