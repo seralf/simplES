@@ -21,7 +21,6 @@ object CP2011 {
 
     val url = Paths.get("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv").toAbsolutePath().normalize().toUri().toURL().toString()
     CSVParser.fromURL(url)(delimiter = '"', separator = ';', encoding = "UTF-8")
-      //      .parse[Map[String, _]]()
       .parse[CP2011Item]()
 
   }
@@ -39,13 +38,29 @@ case class CP2011Item(cod_5: String, nome_5: String, descr_5: String)
 
 object MainCP2011 extends App {
 
-  CP2011.toJSONStream
-    //  CP2011.toTree
-    .zipWithIndex
-    .foreach {
-      case (json, i) =>
-        println(i)
-        println(json)
+  //  CP2011.toJSONStream
+  //    //  CP2011.toTree
+  //    .zipWithIndex
+  //    .foreach {
+  //      case (json, i) =>
+  //        println(i)
+  //        println(json)
+  //    }
+
+  val items = CP2011.data
+
+  items
+    .map { item =>
+
+      val id = item.cod_5
+      val path = id.split("\\.").toList
+
+      (id, path, item.nome_5)
+
+    }.foreach { item =>
+
+      println(item)
+
     }
 
 }

@@ -18,7 +18,6 @@ import org.apache.lucene.search.TopDocs
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.RAMDirectory
 import org.apache.lucene.analysis.StopwordAnalyzerBase
-import simples.JSON
 
 object LuceneHelloWorld extends App {
 
