@@ -40,6 +40,7 @@ object MainES extends App {
 
   val (_index, _type) = ("series", "got")
 
+  // TEST data: GOT
   GOT_DATA.episodes_local
     .zipWithIndex
     .foreach {
@@ -49,10 +50,3 @@ object MainES extends App {
 
 }
 
-object JSON {
-
-  val json_mapper = new ObjectMapper
-  val json_reader = json_mapper.reader()
-  val json_writer = json_mapper.writerWithDefaultPrettyPrinter()
-
-}
