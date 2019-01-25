@@ -6,6 +6,7 @@ import scala.io.Source
 import scala.util.{ Try => TryExp }
 import scala.util.Failure
 import scala.util.Success
+import java.net.URL
 
 object CSVParser {
 
@@ -29,23 +30,10 @@ class CSVParser(url: String, val D: Char, val S: Char, encoding: String) {
   def parse[T: TypeTag: ClassTag](): Seq[T] = {
 
     lazy val headers: Seq[String] = this.parseLines().head
-      .map { item =>
-
-        if (item.startsWith(BOM)) {
-          System.err.println("WARNING: BOM FOUND!", item)
-          item.substring(1)
-        } else {
-          item
-        }
-
-      }
 
     // TODO: handling exception by line
     this.parseLines().tail
       .map { line =>
-
-        if (line.size != headers.size) System.err.println("WARNING: different sizes!")
-
         val map: Map[String, Any] = ListMap(headers.zip(line): _*).toMap
         ModelAdapter.fromMap(map)
       }
@@ -55,8 +43,16 @@ class CSVParser(url: String, val D: Char, val S: Char, encoding: String) {
   // TODO: refactorization
   def parseLines(): Seq[Seq[String]] = {
 
-    using(Source.fromURL(url)(encoding)) { input =>
+    val _url = new URL(url)
+    using(Source.fromInputStream(_url.openStream())(encoding)) { input =>
+      //    using(Source.fromURL(url)(encoding)) { input =>
       input.getLines().toStream
+        .map { item =>
+          if (item.startsWith(BOM))
+            item.replace(BOM, "") // remove BOM, if present!
+          else
+            item
+        }
     }(_.close())
       .map(splitLine)
 
