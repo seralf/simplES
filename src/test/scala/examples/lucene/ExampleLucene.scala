@@ -19,7 +19,9 @@ import org.apache.lucene.store.Directory
 import org.apache.lucene.store.RAMDirectory
 import org.apache.lucene.analysis.StopwordAnalyzerBase
 
-object LuceneHelloWorld extends App {
+// SEE: javacodegeeks
+
+object ExampleLucene extends App {
 
   //New index
   var standardAnalyzer = new StandardAnalyzer()
@@ -29,6 +31,9 @@ object LuceneHelloWorld extends App {
   var writer = new IndexWriter(directory, config)
   var document = new Document()
 
+  // In a real world example, content would be the actual content that needs to be
+  // indexed.
+  // Setting content to Hello World as an example.
   document.add(new TextField("content", "Hello World", Field.Store.YES))
   writer.addDocument(document)
   document.add(new TextField("content", "Hello people", Field.Store.YES))

@@ -1,0 +1,25 @@
+
+#cluster.name: my-application
+
+#node.name: node-1
+
+# Add custom attributes to the node:
+#node.attr.rack: r1
+
+#path.data: /path/to/data
+# Path to log files:
+#path.logs: /path/to/logs
+
+
+# Lock the memory on startup:
+#bootstrap.memory_lock: true
+
+#network.host: 192.168.0.1
+#http.port: 9200
+
+# CORS support
+# http.cors.enabled: true
+# http.cors.allow-origin: "*"
+# http.cors.allow-methods: OPTIONS, HEAD, GET, POST, PUT, DELETE
+# http.cors.allow-headers: "X-Requested-With, Content-Type, Content-Length, X-User"
+

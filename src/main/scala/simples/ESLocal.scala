@@ -17,6 +17,10 @@ class ESLocal(config: Config) extends ES {
     .put("cluster.name", "elasticsearch")
     .put("path.home", "target/ES")
     .put("http.enabled", "true")
+    //    .put("http.host", "0.0.0.0")
+    //    .put("transport.host", "127.0.0.1")
+    .put("http.host", "127.0.0.1")
+    .put("transport.host", "0.0.0.0")
     .build
 
   val node = EmbeddedNode.create(settings)

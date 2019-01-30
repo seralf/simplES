@@ -17,23 +17,13 @@ import scala.collection.JavaConverters._
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
-object MainESRemote extends App {
-
-  val es = new ESRemote(ConfigFactory.empty())
-  es.start()
-
-  val (_index, _type) = ("series", "got")
-  val size = es.documents.size(_index, _type).get
-
-  println("SIZE? " + size)
-
-}
-
 class ESRemote(config: Config) extends ES {
 
   override val client = new PreBuiltTransportClient(Settings.EMPTY)
 
-  val hosts = Map("localhost" -> 9300)
+  val hosts = Map(
+    "localhost" -> 9300,
+    "127.0.0.1" -> 9300)
 
   override def start() = Try {
 
@@ -46,5 +36,17 @@ class ESRemote(config: Config) extends ES {
   override def stop() = Try {
     client.close()
   }
+
+}
+
+object MainESRemote extends App {
+
+  val es = new ESRemote(ConfigFactory.empty())
+  es.start()
+
+  val (_index, _type) = ("series", "got")
+  val size = es.documents.size(_index, _type).get
+
+  println("SIZE? " + size)
 
 }
