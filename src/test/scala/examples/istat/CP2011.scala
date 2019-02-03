@@ -8,6 +8,27 @@ import scala.collection.JavaConverters._
 import simples.utilities.JSON
 import csv.CSVParser
 import java.nio.file.Paths
+import simples.ES
+
+object MainES extends App {
+
+  val es = ES.local
+  es.start()
+
+  val (_index, _type) = ("taxonomy", "cp2011")
+
+  // TEST data: GOT
+  println("ES> indexing example data...")
+  CP2011.data
+    .zipWithIndex
+    .foreach {
+      case (doc, idx) =>
+        val _id = doc.cod_5.replace(".", "-")
+        val _source = JSON.writer.writeValueAsString(doc)
+        es.indexer.index(_index, _type, _id)(_source)
+    }
+
+}
 
 /**
  * esempio dati classificazione CP2011 di ISTAT
@@ -36,16 +57,7 @@ object CP2011 {
 
 case class CP2011Item(cod_5: String, nome_5: String, descr_5: String)
 
-object MainCP2011 extends App {
-
-  //  CP2011.toJSONStream
-  //    //  CP2011.toTree
-  //    .zipWithIndex
-  //    .foreach {
-  //      case (json, i) =>
-  //        println(i)
-  //        println(json)
-  //    }
+object MainCP2011Example extends App {
 
   val items = CP2011.data
 

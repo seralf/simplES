@@ -91,6 +91,25 @@ protected class ESDocumentHandler(client: Client) {
     client.admin().indices().prepareRefresh().execute().actionGet()
   }
 
+  def search(_index: String, _type: String)(query: String = "*:*") = Try {
+
+    refresh()
+
+    client.prepareSearch(_index)
+      .setTypes(_type)
+      .setSize(0)
+      .setQuery(QueryBuilders.queryStringQuery(query))
+      .get
+      .getHits
+      .getHits
+      .toStream
+      .map{ hit => 
+      
+      hit.getSourceAsMap
+      
+    }
+  }
+
   def size(_index: String, _type: String) = Try {
 
     refresh()

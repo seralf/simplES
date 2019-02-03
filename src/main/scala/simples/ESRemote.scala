@@ -16,6 +16,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import java.net.InetSocketAddress
 
 class ESRemote(config: Config) extends ES {
 
@@ -23,11 +24,21 @@ class ESRemote(config: Config) extends ES {
 
   val hosts = Map(
     "localhost" -> 9300,
-    "127.0.0.1" -> 9300)
+    "localhost" -> 9301,
+    "127.0.0.1" -> 9300,
+    "127.0.0.1" -> 9301,
+    "0.0.0.0" -> 9300)
 
   override def start() = Try {
 
+    //    InetAddress.getLoopbackAddress
+
+    //    new InetSocketTransportAddress(new InetSocketAddress())
+
+    client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getLocalHost, 9301))
+
     hosts.foreach { host =>
+
       client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host._1), host._2))
     }
 
