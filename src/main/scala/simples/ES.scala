@@ -14,6 +14,7 @@ import org.elasticsearch.action.update.UpdateRequest
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import com.typesafe.config.ConfigFactory
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
 
 object ES {
 
@@ -32,6 +33,8 @@ trait ES {
   def indexer = ESIndexer(client)
 
   def documents = ESDocumentHandler(client)
+
+  def index = ESIndexManager(client)
 
   def start() = Try {
     logger.debug("ES STARTING")
@@ -103,11 +106,11 @@ protected class ESDocumentHandler(client: Client) {
       .getHits
       .getHits
       .toStream
-      .map{ hit => 
-      
-      hit.getSourceAsMap
-      
-    }
+      .map { hit =>
+
+        hit.getSourceAsMap
+
+      }
   }
 
   def size(_index: String, _type: String) = Try {
@@ -138,70 +141,6 @@ protected class ESDocumentHandler(client: Client) {
         Map("_id" -> _id) ++ fields
       }
 
-  }
-
-}
-
-/**
- * A simple object for handling bulk loading, using the current configurated node (remote, or embedded).
- */
-object ESIndexer {
-  def apply(client: Client) = new ESIndexer(client)
-}
-
-protected class ESIndexer(client: Client) {
-
-  import org.elasticsearch.action.bulk.BackoffPolicy;
-  import org.elasticsearch.action.bulk.BulkProcessor;
-  import org.elasticsearch.common.unit.ByteSizeUnit;
-  import org.elasticsearch.common.unit.ByteSizeValue;
-  import org.elasticsearch.common.unit.TimeValue;
-
-  val logger = LoggerFactory.getLogger(this.getClass)
-
-  // TODO: externalization of config values.
-  private val builder = BulkProcessor.builder(client, bulk_listener)
-    .setBulkActions(50)
-    .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
-    .setFlushInterval(TimeValue.timeValueSeconds(4))
-    .setConcurrentRequests(2)
-    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
-
-  private var bulk = builder.build()
-
-  private def bulk_listener = new BulkProcessor.Listener() {
-
-    override def beforeBulk(executionId: Long, request: BulkRequest) {}
-
-    override def afterBulk(executionId: Long, request: BulkRequest, response: BulkResponse) {}
-
-    override def afterBulk(executionId: Long, request: BulkRequest, failure: Throwable) {}
-
-  }
-
-  def start() {
-    bulk = builder.build()
-  }
-
-  def index(_index: String, _type: String, _id: String = null)(_source: String = "{}") = Try {
-
-    logger.debug(s"""indexing ${_index}/${_type}/${_id}""")
-
-    val _request = new IndexRequest(_index, _type, _id)
-      .source(_source, XContentType.JSON)
-    bulk.add(_request)
-  }
-
-  def stop {
-    bulk.flush()
-    bulk.close()
-  }
-
-  def await {
-    bulk.flush()
-    bulk.awaitClose(10, TimeUnit.MINUTES)
-    client.admin().indices().prepareRefresh().get()
-    client.prepareSearch().get()
   }
 
 }

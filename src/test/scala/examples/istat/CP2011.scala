@@ -9,26 +9,10 @@ import simples.utilities.JSON
 import csv.CSVParser
 import java.nio.file.Paths
 import simples.ES
-
-object MainES extends App {
-
-  val es = ES.local
-  es.start()
-
-  val (_index, _type) = ("taxonomy", "cp2011")
-
-  // TEST data: GOT
-  println("ES> indexing example data...")
-  CP2011.data
-    .zipWithIndex
-    .foreach {
-      case (doc, idx) =>
-        val _id = doc.cod_5.replace(".", "-")
-        val _source = JSON.writer.writeValueAsString(doc)
-        es.indexer.index(_index, _type, _id)(_source)
-    }
-
-}
+import scala.util.Success
+import scala.util.Failure
+import org.elasticsearch.action.admin.indices.close.CloseIndexRequest
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
 
 /**
  * esempio dati classificazione CP2011 di ISTAT
@@ -76,3 +60,4 @@ object MainCP2011Example extends App {
     }
 
 }
+

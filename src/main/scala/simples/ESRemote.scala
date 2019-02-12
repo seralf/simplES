@@ -40,6 +40,7 @@ class ESRemote(config: Config) extends ES {
     hosts.foreach { host =>
 
       client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host._1), host._2))
+
     }
 
   }
@@ -47,17 +48,5 @@ class ESRemote(config: Config) extends ES {
   override def stop() = Try {
     client.close()
   }
-
-}
-
-object MainESRemote extends App {
-
-  val es = new ESRemote(ConfigFactory.empty())
-  es.start()
-
-  val (_index, _type) = ("series", "got")
-  val size = es.documents.size(_index, _type).get
-
-  println("SIZE? " + size)
 
 }
