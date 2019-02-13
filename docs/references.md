@@ -34,5 +34,20 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/java-docs-
 http://api.tvmaze.com/singlesearch/shows?q=game-of-thrones&embed=episodes
 
 
+-----
+
+https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/java-docs-bulk-processor.html
+
+----
+
+test data (local)
+
+http://localhost:9200/twitter/_search
+http://localhost:9200/twitter/_mapping
+http://localhost:9200/twitter/_settings
+
+
+
+
 
 
