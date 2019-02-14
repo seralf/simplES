@@ -1,0 +1,15 @@
+
+## autocompletamento ITA
+
+http://localhost:9200/cp2011/_search?q=organismo
+
+http://localhost:9200/cp2011/_search?q=muratore
+
+----
+
+
+## SQL
+
+curl -H 'Content-Type: application/json' -X POST http://localhost:9200/_xpack/sql?format=txt  -d '{ "query": "DESCRIBE twitter" }'
+
+curl -H 'Content-Type: application/json' -X POST http://localhost:9200/_xpack/sql?format=txt  -d '{ "query": "SELECT message FROM twitter" }'

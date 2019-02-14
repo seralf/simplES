@@ -1,0 +1,1 @@
+curl -H 'Content-Type: application/json' -X POST http://localhost:9200/_xpack/sql?format=txt  -d '{ "query": "DESCRIBE twitter" }'

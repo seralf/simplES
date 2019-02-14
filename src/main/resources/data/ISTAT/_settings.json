@@ -1,0 +1,38 @@
+{
+	"index": {
+		"number_of_shards": 3,
+		"number_of_replicas": 2
+	},
+	"analysis": {
+		"analyzer": {
+			"ita_analyzer": {
+				"tokenizer": "standard",
+				"filter": ["lowercase", "ita_stemmer_simple", "autocomplete_filter_ita" ]
+			},
+			"autocomplete": {
+				"type": "custom",
+				"tokenizer": "standard",
+				"filter": [
+					"lowercase",
+					"autocomplete_filter"
+				]
+			}
+		},
+		"filter": {
+			"ita_stemmer_simple": {
+				"type": "stemmer",
+				"name": "light_italian"
+			},
+			"autocomplete_filter": {
+				"type": "edge_ngram",
+				"min_gram": 1,
+				"max_gram": 20
+			},
+			"autocomplete_filter_ita": {
+				"type": "edge_ngram",
+				"min_gram": 3,
+				"max_gram": 10
+			}
+		}
+	}
+}

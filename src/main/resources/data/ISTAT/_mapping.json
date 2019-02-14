@@ -1,0 +1,38 @@
+{
+			"_doc": {
+				"properties": {
+					"cod_5": {
+						"type": "text",
+						"analyzer": "autocomplete", 
+          				"search_analyzer": "standard", 
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"descr_5": {
+						"type": "text",
+						"analyzer": "ita_analyzer",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 8191
+							}
+						}
+					},
+					"nome_5": {
+						"type": "text",
+						"analyzer": "autocomplete", 
+          				"search_analyzer": "standard", 
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					}
+				}
+			}
+}
