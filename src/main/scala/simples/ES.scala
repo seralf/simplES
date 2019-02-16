@@ -28,7 +28,7 @@ import utilities.JSON
 
 object ES extends App {
 
-  val (_index) = "cp2011"
+  val (_index, _doc) = ("cp2011", "doc")
 
   val settings = Settings.builder()
     .put("cluster.name", "elasticsearch")
@@ -72,7 +72,7 @@ object ES extends App {
   if (!index_exists) {
     client.admin().indices().prepareCreate(_index)
       .setSettings(_settings, XContentType.JSON)
-      .addMapping("_doc", _mapping, XContentType.JSON)
+      .addMapping(_doc, _mapping, XContentType.JSON)
       .get()
 
     refresh
@@ -124,7 +124,7 @@ object ES extends App {
 
         val _source = JSON.writer.writeValueAsString(doc)
 
-        bulkRequest.add(client.prepareIndex(_index, "_doc", i.toString())
+        bulkRequest.add(client.prepareIndex(_index, _doc, i.toString())
           .setSource(_source, XContentType.JSON))
 
     }

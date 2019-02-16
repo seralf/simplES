@@ -7,7 +7,11 @@
 		"analyzer": {
 			"ita_analyzer": {
 				"tokenizer": "standard",
-				"filter": ["lowercase", "ita_stemmer_simple", "autocomplete_filter_ita" ]
+				"filter": [
+					"lowercase", 
+					"ita_stemmer_simple", 
+					"autocomplete_filter_ita" 
+				]
 			},
 			"autocomplete": {
 				"type": "custom",
@@ -30,7 +34,7 @@
 			},
 			"autocomplete_filter_ita": {
 				"type": "edge_ngram",
-				"min_gram": 3,
+				"min_gram": 5,
 				"max_gram": 10
 			}
 		}

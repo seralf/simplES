@@ -48,6 +48,6 @@ http://localhost:9200/twitter/_settings
 
 
 
-
-
+## options
+https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html
 
