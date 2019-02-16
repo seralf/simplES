@@ -51,3 +51,11 @@ http://localhost:9200/twitter/_settings
 ## options
 https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html
 
+
+
+https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-keyword-marker-tokenfilter.html
+
+
+## suggester
+https://www.elastic.co/guide/en/elasticsearch/reference/master/search-suggesters-completion.html
+

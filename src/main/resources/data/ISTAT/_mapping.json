@@ -15,6 +15,7 @@
 					"descr_5": {
 						"type": "text",
 						"store" : true,
+						"copy_to": "skills_txt",
 						"term_vector": "with_positions_offsets_payloads",
 						"analyzer": "ita_analyzer",
 						"search_analyzer": "ita_analyzer", 
@@ -28,6 +29,7 @@
 					"nome_5": {
 						"type": "text",
 						"store" : true,
+						"copy_to": "skills_txt",
 						"term_vector": "with_positions_offsets_payloads",
 						"analyzer": "autocomplete", 
           				"search_analyzer": "standard", 
@@ -35,6 +37,19 @@
 							"keyword": {
 								"type": "keyword",
 								"ignore_above": 256
+							}
+						}
+					},
+					"skills_txt": {
+						"type": "text",
+						"store" : true,
+						"term_vector": "with_positions_offsets_payloads",
+						"analyzer": "ita_analyzer", 
+          				"search_analyzer": "standard", 
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 1024
 							}
 						}
 					}

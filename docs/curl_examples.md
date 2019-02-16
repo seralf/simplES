@@ -17,7 +17,26 @@ curl -H 'Content-Type: application/json' -X POST "http://localhost:9200/cp2011/_
 '
 
 
-curl -H 'Content-Type: application/json' -X POST "http://localhost:9200/cp2011/01/_termvectors?pretty=true" -d '
+curl -H 'Content-Type: application/json' -X POST "http://localhost:9200/cp2011/doc/498/_termvectors?pretty=true" -d '
 {
+  "fields" : ["skills_txt"],
+  "offsets" : true,
+  "positions" : true,
+  "term_statistics" : true,
+  "field_statistics" : true
+}
+'
 
-GET /twitter/_doc/1/_termvectors
+
+
+## esempi (per test)
+
+http://localhost:9200/cp2011/_search?q=muratore			2
+http://localhost:9200/cp2011/_search?q=professore		800
+
+
+NOTE: 
++ ex: autosta
+	- OK http://localhost:9200/cp2011/_search?q=autist
+	- KO http://localhost:9200/cp2011/_search?q=autista
+

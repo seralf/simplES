@@ -25,70 +25,58 @@ import scala.io.Source
 import java.io.InputStream
 import examples.istat.CP2011
 import utilities.JSON
+import scala.util.Try
+import org.elasticsearch.client.transport.TransportClient
+import scala.concurrent.Await
+import org.elasticsearch.action.bulk.BulkRequestBuilder
+import org.elasticsearch.action.index.IndexRequest
+import java.util.concurrent.TimeUnit
 
-object ES extends App {
+object MainES extends App {
 
   val (_index, _doc) = ("cp2011", "doc")
 
-  val settings = Settings.builder()
-    .put("cluster.name", "elasticsearch")
-    .put("client.transport.sniff", true)
-    .put("client.transport.ping_timeout", "5s")
-    .put("node.name", "es-client-mock")
-    .build()
+  val es = ESHelper.create()
+  es.start()
 
-  val client = new PreBuiltTransportClient(settings)
-    .addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300))
-    .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300))
+  es.index_delete(_index)
+  es.index_create(_index, _doc)("data/ISTAT/_settings.json", "data/ISTAT/_mapping.json")
 
-  // -------------------------------------------------------------------
+  es.indexing_data_example()
 
-  def index_exists = client.admin().indices().prepareExists(_index).get.isExists()
+  es.stop()
 
-  // delete index
-  if (index_exists)
-    client.admin().indices().prepareDelete(_index).get
+}
 
-  // create index simply
-  //  if (!index_exists)
-  //    client.admin().indices().prepareCreate(_index)
-  //      .get()
+object ESHelper {
 
-  def readFile(is: InputStream) = {
+  def create() = {
+    new ES(transport())
+  }
 
-    val src = Source.fromInputStream(is)("UTF-8")
-    val txt = src.getLines().mkString("\n")
-    src.close()
+  def transport() = {
 
-    txt
+    // caricare da file
+    val settings = Settings.builder()
+      .put("cluster.name", "elasticsearch")
+      .put("client.transport.sniff", true)
+      .put("client.transport.ping_timeout", "5s")
+      .put("node.name", "es-client-mock")
+      .build()
+
+    val client = new PreBuiltTransportClient(settings)
+      .addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300))
+      .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300))
+
+    client
 
   }
 
-  val _mapping = readFile(this.getClass.getClassLoader.getResourceAsStream("data/ISTAT/_mapping.json"))
+}
 
-  val _settings = readFile(this.getClass.getClassLoader.getResourceAsStream("data/ISTAT/_settings.json"))
-
-  // create index with settings and mapping
-  if (!index_exists) {
-    client.admin().indices().prepareCreate(_index)
-      .setSettings(_settings, XContentType.JSON)
-      .addMapping(_doc, _mapping, XContentType.JSON)
-      .get()
-
-    refresh
-  }
-
-  // refresh index
-  def refresh = client.admin().indices()
-    .prepareRefresh(_index)
-    .get()
-
-  // -------------------------------------------------------------------
-
-  // EXAMPLE: bulk indexing
+class ES(client: TransportClient) {
 
   import org.elasticsearch.common.xcontent.XContentFactory._
-
   import org.elasticsearch.action.bulk.BackoffPolicy
   import org.elasticsearch.action.bulk.BulkProcessor
   import org.elasticsearch.common.unit.ByteSizeUnit
@@ -97,7 +85,9 @@ object ES extends App {
 
   val bulk_listener = new BulkProcessor.Listener() {
 
-    override def beforeBulk(executionId: Long, request: BulkRequest) {}
+    override def beforeBulk(executionId: Long, request: BulkRequest) {
+      println(s"ADD s${executionId}")
+    }
 
     override def afterBulk(executionId: Long, request: BulkRequest, response: BulkResponse) {}
 
@@ -105,39 +95,107 @@ object ES extends App {
 
   }
 
-  val bulkProcessor = BulkProcessor.builder(client, bulk_listener)
-    .setBulkActions(10000)
+  val cores = Runtime.getRuntime().availableProcessors() + 1
+  println(s"ES> concurrent requests? ${cores}")
+
+  val bulkProcessor = BulkProcessor.builder(
+    client,
+    bulk_listener)
+    .setConcurrentRequests(cores)
+    .setBulkActions(100)
     .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
     .setFlushInterval(TimeValue.timeValueSeconds(5))
-    .setConcurrentRequests(10)
-    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
+    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(1000), 3))
     .build()
 
-  val bulkRequest = client.prepareBulk()
+  def start() = Try {
+    // TODO: status check
+  }
 
-  CP2011.data
-    .zipWithIndex
-    .foreach {
-      case (doc, i) =>
+  def stop() = Try {
 
-        val _id = String.format("%04d", Integer.valueOf(i.toString))
+    bulkProcessor.flush()
+    bulkProcessor.close()
+    //    bulkProcessor.awaitClose(2, TimeUnit.SECONDS)
 
-        val _source = JSON.writer.writeValueAsString(doc)
+    // on shutdown
+    Thread.sleep(2000)
+    client.close()
 
-        bulkRequest.add(client.prepareIndex(_index, _doc, i.toString())
-          .setSource(_source, XContentType.JSON))
+  }
 
+  def mapping_read(_mapping_path: String) =
+    fromInputStream(fromResource(_mapping_path))
+
+  def settings_read(_settings_path: String) =
+    fromInputStream(fromResource(_settings_path))
+
+  def index_exists(_index: String) = Try {
+    client.admin().indices().prepareExists(_index).get.isExists()
+  }
+
+  // delete index
+  def index_delete(_index: String) = Try {
+    if (index_exists(_index).get)
+      client.admin().indices().prepareDelete(_index).get
+  }
+
+  // create index with settings and mapping
+  def index_create(_index: String, _doc: String)(_settings: String, _mapping: String) = Try {
+    if (!index_exists(_index).get) {
+      client.admin().indices().prepareCreate(_index)
+        .setSettings(settings_read(_settings).get, XContentType.JSON)
+        .addMapping(_doc, mapping_read(_mapping).get, XContentType.JSON)
+        .get()
+      refresh(_index).get
     }
+  }
 
-  val bulkResponse = bulkRequest.get()
-  if (bulkResponse.hasFailures()) {
-    // process failures by iterating through each bulk response item
+  def refresh(_index: String) = Try {
+
+    // refresh index
+    client.admin().indices().prepareRefresh(_index).get()
+
+    // prepare for search
+    client.prepareSearch().get()
+
+  }
+
+  def fromInputStream(is: InputStream) = Try {
+    val src = Source.fromInputStream(is)("UTF-8")
+    val txt = src.getLines().mkString("\n")
+    src.close()
+    txt
+  }
+
+  def fromResource(_name: String) = {
+    this.getClass.getClassLoader.getResourceAsStream(_name)
   }
 
   // -------------------------------------------------------------------
+  // bulk indexing
 
-  // on shutdown
-  Thread.sleep(2000)
-  client.close()
+  def indexing_data_example() {
+
+    val (_index, _doc) = ("cp2011", "doc")
+
+    val bulkRequest: BulkRequestBuilder = client.prepareBulk()
+
+    CP2011.data
+      .zipWithIndex
+      .foreach {
+        case (doc, i) =>
+
+          val _id = String.format("%04d", Integer.valueOf(i.toString))
+          val _source = JSON.writer.writeValueAsString(doc)
+
+          val req = new IndexRequest(_index, _doc, _id).source(_source, XContentType.JSON)
+          bulkProcessor.add(req)
+
+      }
+
+    bulkProcessor.flush()
+
+  }
 
 }

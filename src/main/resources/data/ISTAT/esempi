@@ -13,3 +13,9 @@ http://localhost:9200/cp2011/_search?q=muratore
 curl -H 'Content-Type: application/json' -X POST http://localhost:9200/_xpack/sql?format=txt  -d '{ "query": "DESCRIBE twitter" }'
 
 curl -H 'Content-Type: application/json' -X POST http://localhost:9200/_xpack/sql?format=txt  -d '{ "query": "SELECT message FROM twitter" }'
+
+
+## NOTE
+
+il match su nome deve essere più importante di quello sul testo
+valutare match esatto!
