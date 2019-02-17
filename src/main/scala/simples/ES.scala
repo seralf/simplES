@@ -36,16 +36,17 @@ import com.typesafe.config.ConfigFactory
 
 import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigRenderOptions
+import java.io.File
 
 object MainES extends App {
 
   val (_index, _doc) = ("cp2011", "doc")
 
-  val es = ESHelper.transport()
+  val es = ESHelper.transport("src/main/resources/conf/es.conf")
   es.start()
 
   es.index_delete(_index)
-  es.index_create(_index, _doc)("data/ISTAT/_settings.json", "data/ISTAT/_mapping.json")
+  es.index_create(_index, _doc)("src/main/resources/data/ISTAT/_settings.json", "src/main/resources/data/ISTAT/_mapping.json")
 
   // indexing example data
   CP2011.data
@@ -65,29 +66,20 @@ object MainES extends App {
 
 object ESHelper {
 
-  def fromInputStream(is: InputStream) = Try {
-    val src = Source.fromInputStream(is)("UTF-8")
-    val txt = src.getLines().mkString("\n")
-    src.close()
-    txt
-  }
-
-  def fromResource(_name: String) = {
-    this.getClass.getClassLoader.getResourceAsStream(_name)
-  }
-
-  def fromFile(_name: String) = {
+  def fromFile(_name: String) = Try{
     val src = Source.fromFile(_name)("UTF-8")
     val txt = src.getLines().mkString("\n")
     src.close()
     txt
   }
 
-  def transport() = {
+  def transport(filename: String) = {
+
+    val _file = Paths.get(filename).toAbsolutePath().normalize().toFile()
 
     // load hocon
     val settings_content = ConfigFactory.empty()
-      .withFallback(ConfigFactory.parseResourcesAnySyntax("conf/es.conf"))
+      .withFallback(ConfigFactory.parseFileAnySyntax(_file))
 
     // just for TEST
     //    val render_options = ConfigRenderOptions.concise()
@@ -162,10 +154,10 @@ class ES(client: TransportClient) {
   }
 
   def mapping_read(_mapping_path: String) =
-    ESHelper.fromInputStream(ESHelper.fromResource(_mapping_path))
+    ESHelper.fromFile(_mapping_path)
 
   def settings_read(_settings_path: String) =
-    ESHelper.fromInputStream(ESHelper.fromResource(_settings_path))
+    ESHelper.fromFile(_settings_path)
 
   def index_exists(_index: String) = Try {
     client.admin().indices().prepareExists(_index).get.isExists()
