@@ -59,3 +59,26 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-keyword
 ## suggester
 https://www.elastic.co/guide/en/elasticsearch/reference/master/search-suggesters-completion.html
 
+
+----
+
+
+extra
+
+http://elasticsearch-cheatsheet.jolicode.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

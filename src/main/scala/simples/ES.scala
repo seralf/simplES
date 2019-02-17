@@ -31,18 +31,33 @@ import scala.concurrent.Await
 import org.elasticsearch.action.bulk.BulkRequestBuilder
 import org.elasticsearch.action.index.IndexRequest
 import java.util.concurrent.TimeUnit
+import java.io.FileInputStream
+import com.typesafe.config.ConfigFactory
+
+import scala.collection.JavaConversions._
+import com.typesafe.config.ConfigRenderOptions
 
 object MainES extends App {
 
   val (_index, _doc) = ("cp2011", "doc")
 
-  val es = ESHelper.create()
+  val es = ESHelper.transport()
   es.start()
 
   es.index_delete(_index)
   es.index_create(_index, _doc)("data/ISTAT/_settings.json", "data/ISTAT/_mapping.json")
 
-  es.indexing_data_example()
+  // indexing example data
+  CP2011.data
+    .zipWithIndex
+    .foreach {
+      case (doc, i) =>
+
+        val _id = String.format("%04d", Integer.valueOf(i.toString))
+        val _source = JSON.writer.writeValueAsString(doc)
+
+        es.indexing(_index, _doc, _id, _source)
+    }
 
   es.stop()
 
@@ -50,25 +65,47 @@ object MainES extends App {
 
 object ESHelper {
 
-  def create() = {
-    new ES(transport())
+  def fromInputStream(is: InputStream) = Try {
+    val src = Source.fromInputStream(is)("UTF-8")
+    val txt = src.getLines().mkString("\n")
+    src.close()
+    txt
+  }
+
+  def fromResource(_name: String) = {
+    this.getClass.getClassLoader.getResourceAsStream(_name)
+  }
+
+  def fromFile(_name: String) = {
+    val src = Source.fromFile(_name)("UTF-8")
+    val txt = src.getLines().mkString("\n")
+    src.close()
+    txt
   }
 
   def transport() = {
 
-    // caricare da file
-    val settings = Settings.builder()
-      .put("cluster.name", "elasticsearch")
-      .put("client.transport.sniff", true)
-      .put("client.transport.ping_timeout", "5s")
-      .put("node.name", "es-client-mock")
+    // load hocon
+    val settings_content = ConfigFactory.empty()
+      .withFallback(ConfigFactory.parseResourcesAnySyntax("conf/es.conf"))
+
+    // just for TEST
+    //    val render_options = ConfigRenderOptions.concise()
+    //    println(settings_content.entrySet()
+    //      .foldRight("")((e, x) => x + s"${e.getKey}: ${e.getValue.render(render_options)}\n"))
+
+    // load ES config from hocon
+    val settings = settings_content.getConfig("elasticsearch").entrySet()
+      .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
       .build()
 
+    // initialize transport client
     val client = new PreBuiltTransportClient(settings)
-      .addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300))
-      .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300))
+    settings_content.getStringList("remote.hosts")
+      .map(_.trim().split(":"))
+      .foreach(e => client.addTransportAddress(new TransportAddress(InetAddress.getByName(e(0)), Integer.valueOf(e(1)))))
 
-    client
+    new ES(client)
 
   }
 
@@ -125,10 +162,10 @@ class ES(client: TransportClient) {
   }
 
   def mapping_read(_mapping_path: String) =
-    fromInputStream(fromResource(_mapping_path))
+    ESHelper.fromInputStream(ESHelper.fromResource(_mapping_path))
 
   def settings_read(_settings_path: String) =
-    fromInputStream(fromResource(_settings_path))
+    ESHelper.fromInputStream(ESHelper.fromResource(_settings_path))
 
   def index_exists(_index: String) = Try {
     client.admin().indices().prepareExists(_index).get.isExists()
@@ -161,17 +198,6 @@ class ES(client: TransportClient) {
 
   }
 
-  def fromInputStream(is: InputStream) = Try {
-    val src = Source.fromInputStream(is)("UTF-8")
-    val txt = src.getLines().mkString("\n")
-    src.close()
-    txt
-  }
-
-  def fromResource(_name: String) = {
-    this.getClass.getClassLoader.getResourceAsStream(_name)
-  }
-
   // -------------------------------------------------------------------
   // bulk indexing
 
@@ -195,6 +221,29 @@ class ES(client: TransportClient) {
       }
 
     bulkProcessor.flush()
+
+  }
+
+  def indexing(_index: String, _type: String, docs: (String, String)*) {
+
+    docs.toStream
+      .foreach {
+        case (_id, _source) =>
+
+          val req = new IndexRequest(_index, _type, _id).source(_source, XContentType.JSON)
+          bulkProcessor.add(req)
+
+      }
+
+    bulkProcessor.flush()
+
+  }
+
+  def indexing(_index: String, _type: String, _id: String = null, _source: String) {
+
+    val req = new IndexRequest(_index, _type, _id).source(_source, XContentType.JSON)
+    bulkProcessor.add(req)
+    //    bulkProcessor.flush()
 
   }
 
