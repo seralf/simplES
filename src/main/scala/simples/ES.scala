@@ -23,7 +23,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import scala.io.Source
 import java.io.InputStream
-import examples.istat.CP2011
 import utilities.JSON
 import scala.util.Try
 import org.elasticsearch.client.transport.TransportClient
@@ -37,43 +36,18 @@ import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigRenderOptions
 import java.io.File
-
-object MainES extends App {
-
-  val (_index, _doc) = ("cp2011", "doc")
-
-  val es = ESHelper.transport("src/main/resources/conf/es.conf")
-  es.start()
-
-  es.index_delete(_index)
-  es.index_create(_index, _doc)("src/main/resources/data/ISTAT/_settings.json", "src/main/resources/data/ISTAT/_mapping.json")
-
-  // indexing example data
-  CP2011.data
-    .zipWithIndex
-    .foreach {
-      case (doc, i) =>
-
-        val _id = String.format("%04d", Integer.valueOf(i.toString))
-        val _source = JSON.writer.writeValueAsString(doc)
-
-        es.indexing(_index, _doc, _id, _source)
-    }
-
-  es.stop()
-
-}
+import org.elasticsearch.client.Client
 
 object ESHelper {
 
-  def fromFile(_name: String) = Try{
+  def fromFile(_name: String) = Try {
     val src = Source.fromFile(_name)("UTF-8")
     val txt = src.getLines().mkString("\n")
     src.close()
     txt
   }
 
-  def transport(filename: String) = {
+  def transport(filename: String): ES = {
 
     val _file = Paths.get(filename).toAbsolutePath().normalize().toFile()
 
@@ -103,7 +77,7 @@ object ESHelper {
 
 }
 
-class ES(client: TransportClient) {
+class ES(client: Client) {
 
   import org.elasticsearch.common.xcontent.XContentFactory._
   import org.elasticsearch.action.bulk.BackoffPolicy
@@ -145,7 +119,7 @@ class ES(client: TransportClient) {
 
     bulkProcessor.flush()
     bulkProcessor.close()
-    //    bulkProcessor.awaitClose(2, TimeUnit.SECONDS)
+    // TODO: bulkProcessor.awaitClose(2, TimeUnit.SECONDS)
 
     // on shutdown
     Thread.sleep(2000)
@@ -153,10 +127,10 @@ class ES(client: TransportClient) {
 
   }
 
-  def mapping_read(_mapping_path: String) =
+  def mapping_read(_mapping_path: String): Try[String] =
     ESHelper.fromFile(_mapping_path)
 
-  def settings_read(_settings_path: String) =
+  def settings_read(_settings_path: String): Try[String] =
     ESHelper.fromFile(_settings_path)
 
   def index_exists(_index: String) = Try {
@@ -190,53 +164,27 @@ class ES(client: TransportClient) {
 
   }
 
-  // -------------------------------------------------------------------
-  // bulk indexing
+  def indexing(_index: String, _type: String, _id: String = null, _source: String) {
 
-  def indexing_data_example() {
-
-    val (_index, _doc) = ("cp2011", "doc")
-
-    val bulkRequest: BulkRequestBuilder = client.prepareBulk()
-
-    CP2011.data
-      .zipWithIndex
-      .foreach {
-        case (doc, i) =>
-
-          val _id = String.format("%04d", Integer.valueOf(i.toString))
-          val _source = JSON.writer.writeValueAsString(doc)
-
-          val req = new IndexRequest(_index, _doc, _id).source(_source, XContentType.JSON)
-          bulkProcessor.add(req)
-
-      }
-
-    bulkProcessor.flush()
+    val req = new IndexRequest(_index, _type, _id).source(_source, XContentType.JSON)
+    bulkProcessor.add(req)
 
   }
 
+  // multiple indexing
   def indexing(_index: String, _type: String, docs: (String, String)*) {
 
     docs.toStream
       .foreach {
         case (_id, _source) =>
-
-          val req = new IndexRequest(_index, _type, _id).source(_source, XContentType.JSON)
-          bulkProcessor.add(req)
-
+          indexing(_index, _type, _id, _source)
       }
 
     bulkProcessor.flush()
 
   }
 
-  def indexing(_index: String, _type: String, _id: String = null, _source: String) {
-
-    val req = new IndexRequest(_index, _type, _id).source(_source, XContentType.JSON)
-    bulkProcessor.add(req)
-    //    bulkProcessor.flush()
-
-  }
+  // REVIEW (from previous versions)
+  def search(query: String): Seq[Any] = ???
 
 }

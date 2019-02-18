@@ -10,9 +10,25 @@ import java.util.Date
 import org.elasticsearch.action.bulk.BulkRequest
 import org.elasticsearch.action.bulk.BulkResponse
 
-object MainMockES extends App {
+import org.elasticsearch.transport.client.PreBuiltTransportClient
+import org.elasticsearch.common.settings.Settings
+import java.net.InetAddress
+import org.elasticsearch.common.transport.TransportAddress
+import org.elasticsearch.common.xcontent.XContentType
+import org.elasticsearch.common.xcontent.XContentBuilder
+import java.util.Date
+import org.elasticsearch.action.bulk.BulkRequest
+import org.elasticsearch.action.bulk.BulkResponse
+import java.nio.file.Files
+import java.nio.file.Paths
+import scala.io.Source
+import java.io.InputStream
+import utilities.JSON
+import examples.istat.cp2011.CP2011
 
-  val (_index) = "twitter"
+object MockESCustomITA extends App {
+
+  val (_index, _doc) = ("cp2011", "doc")
 
   val settings = Settings.builder()
     .put("cluster.name", "elasticsearch")
@@ -38,46 +54,25 @@ object MainMockES extends App {
   //    client.admin().indices().prepareCreate(_index)
   //      .get()
 
+  def readFile(is: InputStream) = {
+
+    val src = Source.fromInputStream(is)("UTF-8")
+    val txt = src.getLines().mkString("\n")
+    src.close()
+
+    txt
+
+  }
+
+  val _mapping = readFile(this.getClass.getClassLoader.getResourceAsStream("data/ISTAT/_mapping.json"))
+
+  val _settings = readFile(this.getClass.getClassLoader.getResourceAsStream("data/ISTAT/_settings.json"))
+
   // create index with settings and mapping
   if (!index_exists) {
     client.admin().indices().prepareCreate(_index)
-      .setSettings("""
-        index.number_of_shards: 1
-        index.number_of_replicas: 0
-      """, XContentType.YAML)
-      .addMapping("_doc", """
-       {
-       	"_doc": {
-       		"properties": {
-       			"message": {
-       				"type": "text",
-       				"fields": {
-       					"keyword": {
-       						"type": "keyword",
-       						"ignore_above": 256
-       					}
-       				}
-       			},
-       			"postDate": {
-       				"type": "date"
-       			},
-       			"title": {
-       				"type": "text",
-       				"analyzer": "english"
-       			},
-       			"user": {
-       				"type": "text",
-       				"fields": {
-       					"keyword": {
-       						"type": "keyword",
-       						"ignore_above": 256
-       					}
-       				}
-       			}
-       		}
-       	}
-       }  
-      """, XContentType.JSON)
+      .setSettings(_settings, XContentType.JSON)
+      .addMapping(_doc, _mapping, XContentType.JSON)
       .get()
 
     refresh
@@ -120,18 +115,19 @@ object MainMockES extends App {
 
   val bulkRequest = client.prepareBulk()
 
-  for { i <- 0 to 40 } {
+  CP2011.data
+    .zipWithIndex
+    .foreach {
+      case (doc, i) =>
 
-    val _id = String.format("%04d", Integer.valueOf(i.toString))
+        val _id = String.format("%04d", Integer.valueOf(i.toString))
 
-    bulkRequest.add(client.prepareIndex("twitter", "_doc", i.toString())
-      .setSource(jsonBuilder()
-        .startObject()
-        .field("user", "kimchy")
-        .field("postDate", new Date())
-        .field("message", "trying out Elasticsearch")
-        .endObject()))
-  }
+        val _source = JSON.writer.writeValueAsString(doc)
+
+        bulkRequest.add(client.prepareIndex(_index, _doc, i.toString())
+          .setSource(_source, XContentType.JSON))
+
+    }
 
   val bulkResponse = bulkRequest.get()
   if (bulkResponse.hasFailures()) {
