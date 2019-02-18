@@ -21,6 +21,26 @@ import java.util.Collection
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
+import org.elasticsearch.index.reindex.ReindexPlugin
+import org.elasticsearch.analysis.common.CommonAnalysisPlugin
+
+object MainESLocal extends App {
+
+  val _file = Paths.get("src/main/resources/conf/es-local.conf").toAbsolutePath().normalize().toFile()
+
+  // load hocon
+  val settings_content = ConfigFactory.empty()
+    .withFallback(ConfigFactory.parseFileAnySyntax(_file))
+  val settings = settings_content.getConfig("elasticsearch").entrySet()
+    .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
+    .build()
+
+  val node = EmbeddedNode(settings)
+
+  val es = new ESLocal(node.client(), node)
+  es.start()
+}
 
 class ESLocal(client: Client, node: Node) extends ES(client) {
 
@@ -37,8 +57,9 @@ class ESLocal(client: Client, node: Node) extends ES(client) {
         node.start()
         Thread.sleep(Long.MaxValue)
       }
-    };
+    }
 
+    //    if (node.isClosed())
     thread.start()
 
   }
@@ -62,9 +83,15 @@ object EmbeddedNode {
 
   def apply(settings: Settings) = {
     val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
+
     // REVIEW
-    val plugins: Collection[Class[_ <: Plugin]] = List(classOf[Netty4Plugin])
-    new EmbeddedNode(env, plugins, false)
+    val plugins: Collection[Class[_ <: Plugin]] = List(
+      classOf[Netty4Plugin],
+      classOf[ReindexPlugin],
+      classOf[CommonAnalysisPlugin]  
+    )
+
+    new EmbeddedNode(env, plugins, true)
   }
 
 }
