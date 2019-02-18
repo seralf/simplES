@@ -75,6 +75,26 @@ object ESHelper {
 
   }
 
+  def local(filename: String): ES = {
+
+    val _file = Paths.get(filename).toAbsolutePath().normalize().toFile()
+
+    // load hocon
+    val settings_content = ConfigFactory.empty()
+      .withFallback(ConfigFactory.parseFileAnySyntax(_file))
+
+    // load ES config from hocon
+    val settings = settings_content.getConfig("elasticsearch").entrySet()
+      .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
+      .build()
+
+    val node = EmbeddedNode(settings)
+    val client = node.client()
+
+    new ESLocal(client, node)
+
+  }
+
 }
 
 class ES(client: Client) {
@@ -101,7 +121,9 @@ class ES(client: Client) {
   val cores = Runtime.getRuntime().availableProcessors() + 1
   println(s"ES> concurrent requests? ${cores}")
 
-  val bulkProcessor = BulkProcessor.builder(
+  //  protected var bulkProcessor: BulkProcessor = null
+
+  def bulkProcessor = BulkProcessor.builder(
     client,
     bulk_listener)
     .setConcurrentRequests(cores)
@@ -112,7 +134,11 @@ class ES(client: Client) {
     .build()
 
   def start() = Try {
+
     // TODO: status check
+
+    println("\n\n#### START BulkProcessor")
+
   }
 
   def stop() = Try {

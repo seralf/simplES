@@ -10,34 +10,30 @@ import java.util.concurrent.TimeUnit
 import scala.util.Try
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.Config
+import org.elasticsearch.node.InternalSettingsPreparer
+import org.elasticsearch.transport.Netty4Plugin
 
-object MainESLocal extends App {
+import org.elasticsearch.plugins.Plugin
+import org.elasticsearch.env.Environment
+import org.elasticsearch.node.Node
+import java.util.Collection
 
-  val es = new ESLocal
-  es.start()
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import org.slf4j.LoggerFactory
 
-}
+class ESLocal(client: Client, node: Node) extends ES(client) {
 
-class ESLocal {
+  val logger = LoggerFactory.getLogger(this.getClass)
 
-  val settings = Settings.builder()
-    .put("cluster.name", "elasticsearch")
-    .put("path.home", "target/ES")
-    .put("http.enabled", "true")
-    .put("http.host", "127.0.0.1")
-    .put("transport.host", "0.0.0.0")
-    .put("client.transport.sniff", true)
-    .build
+  //  var thread: Thread = null
 
-  val node = EmbeddedNode.create(settings)
+  override def start() = Try {
 
-  val client = node.client()
-
-  def start() = Try {
+    super.start()
 
     val thread = new Thread("es-embedded-node") {
       override def run() {
-        println("run by: " + getName())
         node.start()
         Thread.sleep(Long.MaxValue)
       }
@@ -47,11 +43,35 @@ class ESLocal {
 
   }
 
-  def stop() = Try {
-    client.close()
+  override def stop() = Try {
+
     if (!node.isClosed()) {
+
+      // CHECK thread.stop()
+
       node.close()
     }
+
+    super.stop()
+
   }
+
+}
+
+object EmbeddedNode {
+
+  def apply(settings: Settings) = {
+    val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
+    // REVIEW
+    val plugins: Collection[Class[_ <: Plugin]] = List(classOf[Netty4Plugin])
+    new EmbeddedNode(env, plugins, false)
+  }
+
+}
+
+class EmbeddedNode(env: Environment, plugins: Collection[Class[_ <: Plugin]], forbidPrivateSettings: Boolean)
+  extends Node(env, plugins, forbidPrivateSettings) {
+
+  override def registerDerivedNodeNameWithLogger(name: String) {}
 
 }

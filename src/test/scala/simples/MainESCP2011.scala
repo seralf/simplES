@@ -8,7 +8,8 @@ object MainESCP2011 extends App {
 
   val (_index, _doc) = ("cp2011", "doc")
 
-  val es = ESHelper.transport("src/main/resources/conf/es.conf")
+  //  val es = ESHelper.transport("src/main/resources/conf/es.conf")
+  val es = ESHelper.local("src/main/resources/conf/es-local.conf")
   es.start()
 
   es.index_delete(_index)
@@ -26,6 +27,7 @@ object MainESCP2011 extends App {
         es.indexing(_index, _doc, _id, _source)
     }
 
+  Thread.sleep(120000)
   es.stop()
 
 }
