@@ -42,7 +42,9 @@ object MainESLocal extends App {
   es.start()
 }
 
-class ESLocal(client: Client, node: Node) extends ES(client) {
+class ESLocal(client: Client, node: Node) extends ES(client)
+
+class ESLocal2(client: Client, node: Node) extends ES(client) {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -88,8 +90,7 @@ object EmbeddedNode {
     val plugins: Collection[Class[_ <: Plugin]] = List(
       classOf[Netty4Plugin],
       classOf[ReindexPlugin],
-      classOf[CommonAnalysisPlugin]  
-    )
+      classOf[CommonAnalysisPlugin])
 
     new EmbeddedNode(env, plugins, true)
   }

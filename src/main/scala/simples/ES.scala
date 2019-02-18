@@ -84,9 +84,9 @@ object ESHelper {
       .build()
 
     val node = EmbeddedNode(settings)
-    val client = node.client()
+    node.start()
 
-    new ESLocal(client, node)
+    new ESLocal(node.client(), node)
 
   }
 
@@ -136,7 +136,7 @@ class ES(client: Client) {
 
     println("\n\n#### START BulkProcessor")
     bulkProcessor = bulkProcessorInitialize()
-    
+
   }
 
   def stop() = Try {
