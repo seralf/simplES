@@ -5,6 +5,9 @@ import csv.CSVParser
 import simples.utilities.JSON
 import scala.reflect.api.materializeTypeTag
 
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+
 /**
  * esempio dati classificazione CP2011 di ISTAT
  *
@@ -12,6 +15,8 @@ import scala.reflect.api.materializeTypeTag
  *
  */
 object CP2011 {
+
+  def toJavaList() = data.toList.asJava
 
   def data = {
 

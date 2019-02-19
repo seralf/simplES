@@ -42,27 +42,16 @@ object MainESLocal extends App {
   es.start()
 }
 
-class ESLocal(client: Client, node: Node) extends ES(client)
-
-class ESLocal2(client: Client, node: Node) extends ES(client) {
+class ESLocal(client: Client, node: Node) extends ES(client) {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  //  var thread: Thread = null
-
   override def start() = Try {
 
+    node.start()
+    Thread.sleep(500)
+
     super.start()
-
-    val thread = new Thread("es-embedded-node") {
-      override def run() {
-        node.start()
-        Thread.sleep(Long.MaxValue)
-      }
-    }
-
-    //    if (node.isClosed())
-    thread.start()
 
   }
 
@@ -86,7 +75,7 @@ object EmbeddedNode {
   def apply(settings: Settings) = {
     val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
 
-    // REVIEW
+    // REVIEW the plugins
     val plugins: Collection[Class[_ <: Plugin]] = List(
       classOf[Netty4Plugin],
       classOf[ReindexPlugin],
