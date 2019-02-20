@@ -7,6 +7,16 @@ import scala.reflect.api.materializeTypeTag
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import simples.utilities.ModelAdapter
+
+object MainCP2011 extends App {
+
+  CP2011.data
+    .foreach { item =>
+      println(item)
+    }
+
+}
 
 /**
  * esempio dati classificazione CP2011 di ISTAT
@@ -24,7 +34,15 @@ object CP2011 {
       .toAbsolutePath().normalize().toUri().toURL().toString()
 
     CSVParser.fromURL(url)(delimiter = '"', separator = ';', encoding = "UTF-8")
-      .parse[CP2011Item]()
+      .parse[Map[String, String]]()
+      .map { map =>
+        // IDEA: generalize wildcards, here!
+        Map(
+          "cod" -> map.filter(_._1.startsWith("cod_")).head._2,
+          "nome" -> map.filter(_._1.startsWith("nome_")).head._2,
+          "descr" -> map.filter(_._1.startsWith("descr_")).head._2)
+      }
+      .map(ModelAdapter.fromMap[CP2011Item](_))
 
   }
 
@@ -37,5 +55,5 @@ object CP2011 {
 
 }
 
-case class CP2011Item(cod_5: String, nome_5: String, descr_5: String)
+case class CP2011Item(cod: String, nome: String, descr: String)
 

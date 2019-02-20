@@ -33,12 +33,15 @@ import java.util.concurrent.TimeUnit
 import java.io.FileInputStream
 import com.typesafe.config.ConfigFactory
 
-import scala.collection.JavaConversions._
 import com.typesafe.config.ConfigRenderOptions
 import java.io.File
 import org.elasticsearch.client.Client
+import org.slf4j.LoggerFactory
 
 object ESHelper {
+
+  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   def fromFile(_name: String) = Try {
     val src = Source.fromFile(_name)("UTF-8")
@@ -92,7 +95,7 @@ object ESHelper {
 
 // ---------------------------------------------------------------------
 
-class ES(client: Client) {
+class ES(val client: Client) {
 
   import org.elasticsearch.common.xcontent.XContentFactory._
   import org.elasticsearch.action.bulk.BackoffPolicy
@@ -100,6 +103,8 @@ class ES(client: Client) {
   import org.elasticsearch.common.unit.ByteSizeUnit
   import org.elasticsearch.common.unit.ByteSizeValue
   import org.elasticsearch.common.unit.TimeValue
+
+  protected val logger = LoggerFactory.getLogger(this.getClass)
 
   val bulk_listener = new BulkProcessor.Listener() {
 
@@ -114,10 +119,11 @@ class ES(client: Client) {
   }
 
   val cores = Runtime.getRuntime().availableProcessors() + 1
-  println(s"ES> concurrent requests? ${cores}")
+  logger.debug(s"ES> concurrent requests? ${cores}")
 
   protected var bulkProcessor: BulkProcessor = null
 
+  // TODO: externalize bulk configs!
   def bulkProcessorInitialize() = BulkProcessor.builder(
     client,
     bulk_listener)
@@ -132,7 +138,7 @@ class ES(client: Client) {
 
     // TODO: status check
 
-    println("\n\n#### START BulkProcessor")
+    logger.debug("ES> START BulkProcessor")
     bulkProcessor = bulkProcessorInitialize()
 
   }
@@ -209,7 +215,17 @@ class ES(client: Client) {
   }
 
   // REVIEW (from previous versions)
-  def search(query: String): Seq[Any] = ???
+  def search(query: String): Seq[Any] = {
+
+    //    val response = client.prepareSearch("index1", "index2")
+    //      .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+    //      .setQuery(QueryBuilders.termQuery("multi", "test")) // Query
+    //      .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18)) // Filter
+    //      .setFrom(0).setSize(60).setExplain(true)
+    //      .get();
+
+    ???
+  }
 
 }
 

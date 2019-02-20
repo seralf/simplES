@@ -44,14 +44,14 @@ object MainESLocal extends App {
 
 class ESLocal(client: Client, node: Node) extends ES(client) {
 
-  val logger = LoggerFactory.getLogger(this.getClass)
-
   override def start() = Try {
 
     node.start()
     Thread.sleep(500)
 
     super.start()
+
+    logger.debug("ES> ESLocal started")
 
   }
 
@@ -66,6 +66,8 @@ class ESLocal(client: Client, node: Node) extends ES(client) {
 
     super.stop()
 
+    logger.debug("ES> ESLocal stopped")
+
   }
 
 }
@@ -73,6 +75,7 @@ class ESLocal(client: Client, node: Node) extends ES(client) {
 object EmbeddedNode {
 
   def apply(settings: Settings) = {
+
     val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
 
     // REVIEW the plugins
@@ -81,14 +84,18 @@ object EmbeddedNode {
       classOf[ReindexPlugin],
       classOf[CommonAnalysisPlugin])
 
-    new EmbeddedNode(env, plugins, true)
+    new Node(env, plugins, true) {
+      override def registerDerivedNodeNameWithLogger(name: String) {}
+    }
   }
 
 }
 
+//CHECK: overloaded constructor
 class EmbeddedNode(env: Environment, plugins: Collection[Class[_ <: Plugin]], forbidPrivateSettings: Boolean)
   extends Node(env, plugins, forbidPrivateSettings) {
 
   override def registerDerivedNodeNameWithLogger(name: String) {}
 
 }
+
