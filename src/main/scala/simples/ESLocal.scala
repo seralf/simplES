@@ -84,18 +84,9 @@ object EmbeddedNode {
       classOf[ReindexPlugin],
       classOf[CommonAnalysisPlugin])
 
-    new Node(env, plugins, true) {
-      override def registerDerivedNodeNameWithLogger(name: String) {}
-    }
+    new Node(env, plugins) {}
   }
 
 }
 
-//CHECK: overloaded constructor
-class EmbeddedNode(env: Environment, plugins: Collection[Class[_ <: Plugin]], forbidPrivateSettings: Boolean)
-  extends Node(env, plugins, forbidPrivateSettings) {
-
-  override def registerDerivedNodeNameWithLogger(name: String) {}
-
-}
 
