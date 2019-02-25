@@ -11,7 +11,7 @@ import simples.utilities.ModelAdapter
 
 object MainCP2011 extends App {
 
-  CP2011.data
+  CP2011.data("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv")
     .foreach { item =>
       println(item)
     }
@@ -26,11 +26,11 @@ object MainCP2011 extends App {
  */
 object CP2011 {
 
-  def toJavaList() = data.toList.asJava
+  def toJavaList(filename: String) = data(filename).toList.asJava
 
-  def data = {
+  def data(filename: String) = {
 
-    val url = Paths.get("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv")
+    val url = Paths.get(filename)
       .toAbsolutePath().normalize().toUri().toURL().toString()
 
     CSVParser.fromURL(url)(delimiter = '"', separator = ';', encoding = "UTF-8")
@@ -46,9 +46,9 @@ object CP2011 {
 
   }
 
-  def toJSONStream = {
+  def toJSONStream(filename: String) = {
 
-    data
+    data(filename)
       .map(JSON.writer.writeValueAsString(_))
 
   }
