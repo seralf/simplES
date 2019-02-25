@@ -30,7 +30,7 @@ object MainESCP2011Remote extends App {
   }
 
   // indexing example data
-  CP2011.data
+  CP2011.data("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv")
     .zipWithIndex
     .foreach {
       case (doc, i) =>

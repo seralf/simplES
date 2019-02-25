@@ -14,7 +14,7 @@ object MainESCP2011Local extends App {
   es.index_create(_index, _doc)("src/main/resources/data/ISTAT/_settings.json", "src/main/resources/data/ISTAT/_mapping.json")
 
   // indexing example data
-  CP2011.data
+  CP2011.data("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv")
     .zipWithIndex
     .foreach {
       case (doc, i) =>

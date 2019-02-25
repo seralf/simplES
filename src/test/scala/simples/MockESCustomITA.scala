@@ -115,7 +115,7 @@ object MockESCustomITA extends App {
 
   val bulkRequest = client.prepareBulk()
 
-  CP2011.data
+  CP2011.data("src/main/resources/data/ISTAT/cp2011_I-Vdigit.csv")
     .zipWithIndex
     .foreach {
       case (doc, i) =>
