@@ -84,7 +84,14 @@ object EmbeddedNode {
       classOf[ReindexPlugin],
       classOf[CommonAnalysisPlugin])
 
-    new Node(env, plugins) {}
+    //    new Node(env, plugins) {}
+
+    new Node(env, plugins, true) {
+      override def registerDerivedNodeNameWithLogger(name: String) {
+        println("Node.registerDerivedNodeNameWithLogger :: " + name)
+      }
+    }
+
   }
 
 }
