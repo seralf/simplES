@@ -9,7 +9,7 @@ A Simple Elastic Search Tool
 
 + [ ] manage Future <-> Try
 
-+ update jackson to fix vulnerability
++ [x] updated jackson to fix vulnerability
 
 SEE: https://github.com/seralf/simplES/network/alerts
 ```
