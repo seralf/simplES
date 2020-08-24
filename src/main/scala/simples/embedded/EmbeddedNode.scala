@@ -1,4 +1,4 @@
-package simples.refactorization
+package simples.embedded
 
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.InternalSettingsPreparer
@@ -17,10 +17,11 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 object EmbeddedNode {
 
-  def fromConfigFile(conf_file: String) = {
+  def withConfigFile(conf_file: String) = {
 
     val _file = Paths.get(conf_file).toAbsolutePath().normalize().toFile()
 
@@ -55,13 +56,13 @@ class EmbeddedNode(settings: Settings) {
     // this is just a workaround needed to load plugins...
   }
 
-  def start() = {
+  def start() = Try {
 
     Await.ready(Future { node.start() }, Duration.Inf)
 
   }
 
-  def stop() = {
+  def stop() = Try {
 
     if (!node.isClosed()) {
       node.close()

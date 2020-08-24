@@ -10,15 +10,6 @@ import java.util.Date
 import org.elasticsearch.action.bulk.BulkRequest
 import org.elasticsearch.action.bulk.BulkResponse
 
-import org.elasticsearch.transport.client.PreBuiltTransportClient
-import org.elasticsearch.common.settings.Settings
-import java.net.InetAddress
-import org.elasticsearch.common.transport.TransportAddress
-import org.elasticsearch.common.xcontent.XContentType
-import org.elasticsearch.common.xcontent.XContentBuilder
-import java.util.Date
-import org.elasticsearch.action.bulk.BulkRequest
-import org.elasticsearch.action.bulk.BulkResponse
 import java.nio.file.Files
 import java.nio.file.Paths
 import scala.io.Source
@@ -38,9 +29,39 @@ import java.io.File
 import org.elasticsearch.client.Client
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import com.typesafe.config.Config
 
+object ES {
 
-// ---------------------------------------------------------------------
+  def remote(config_file_path: String): ES =
+    new ES(ES.clientFromConfig(config_file_path))
+
+  private def clientFromConfig(config_file_path: String): Client = {
+
+    val _file = Paths.get(config_file_path).toAbsolutePath().normalize().toFile()
+
+    // load hocon
+    val settings_content = ConfigFactory.empty()
+      .withFallback(ConfigFactory.parseFileAnySyntax(_file))
+
+    // load ES config from hocon
+    val settings = settings_content.getConfig("elasticsearch").entrySet()
+      .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
+      .build()
+
+    // initialize transport client
+    val client = new PreBuiltTransportClient(settings)
+    settings_content.getStringList("remote.hosts")
+      .map(_.trim().split(":"))
+      .foreach(e => client.addTransportAddress(new TransportAddress(InetAddress.getByName(e(0)), Integer.valueOf(e(1)))))
+
+    client
+
+  }
+
+}
 
 class ES(val client: Client) {
 
@@ -160,6 +181,9 @@ class ES(val client: Client) {
     bulkProcessor.flush()
 
   }
+
+  // TODO:
+  def search(query: String): Seq[Any] = ???
 
   //  // REVIEW (from previous versions)
   //  def search(query: String): Seq[Any] = {

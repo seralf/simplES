@@ -1,4 +1,4 @@
-package simples
+package simples.examples
 
 import org.elasticsearch.transport.client.PreBuiltTransportClient
 import org.elasticsearch.common.settings.Settings
@@ -9,7 +9,10 @@ import java.util.Date
 import org.elasticsearch.action.bulk.BulkRequest
 import org.elasticsearch.action.bulk.BulkResponse
 
-object MainMockES extends App {
+/**
+ * this is a basic example, useful for references...
+ */
+object TwitterExample extends App {
 
   val (_index) = "twitter"
 
@@ -20,6 +23,7 @@ object MainMockES extends App {
     .put("node.name", "es-client-mock")
     .build()
 
+  // TODO: PreBuiltTransportClient should be replaced with REST client
   val client = new PreBuiltTransportClient(settings)
     .addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300))
     .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300))
