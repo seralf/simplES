@@ -185,19 +185,6 @@ class ES(val client: Client) {
   // TODO:
   def search(query: String): Seq[Any] = ???
 
-  //  // REVIEW (from previous versions)
-  //  def search(query: String): Seq[Any] = {
-  //
-  //    //    val response = client.prepareSearch("index1", "index2")
-  //    //      .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-  //    //      .setQuery(QueryBuilders.termQuery("multi", "test")) // Query
-  //    //      .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18)) // Filter
-  //    //      .setFrom(0).setSize(60).setExplain(true)
-  //    //      .get();
-  //
-  //    ???
-  //  }
-
   private def fromFile(_name: String) = Try {
     val src = Source.fromFile(_name)("UTF-8")
     val txt = src.getLines().mkString("\n")

@@ -4,10 +4,20 @@ simplES
 A Simple Elastic Search Tool POC
 
 
-## instructions
+## example (GOT)
 
-1. run `simples.MainEmbeddedNode`
-1. run `simples.MainMockES`
+A simple example indexing descriptions for some of the Game of Thrones episodes.
+.
+
+1. launch
+
+`simples.examples.got.MainGOT`
+
+
+2. try the query:
+
+`http://localhost:9200/got/_doc/_search?q=Tyrion`
+
 
 
 ## TODO: update to latest version

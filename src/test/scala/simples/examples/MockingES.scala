@@ -1,8 +1,9 @@
+
+
 package simples.examples
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-
 import simples.ES
 import simples.embedded.EmbeddedNode
 
@@ -17,7 +18,7 @@ object MockingES extends App {
 
   es.start().get
 
-  Thread.sleep(60000)
+  Thread.sleep(120000)
 
   es.stop().get
 
