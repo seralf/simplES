@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import org.elasticsearch.index.reindex.ReindexPlugin
 import org.elasticsearch.analysis.common.CommonAnalysisPlugin
+import java.util.Collections
+import java.util.function.Supplier
 
 object MainESLocal extends App {
 
@@ -76,7 +78,11 @@ object EmbeddedNode {
 
   def apply(settings: Settings) = {
 
-    val env = InternalSettingsPreparer.prepareEnvironment(settings, null)
+    //    CHECK
+    //     Settings settings = InternalSettingsPreparer.prepareSettings(Settings.EMPTY);
+    //          Environment env = InternalSettingsPreparer.prepareEnvironment(baseEnvSettings, emptyMap(), null, () -> defaultNodeName);
+
+    val env = InternalSettingsPreparer.prepareEnvironment(settings, Collections.emptyMap(), null, null)
 
     // REVIEW the plugins
     val plugins: Collection[Class[_ <: Plugin]] = List(
@@ -87,9 +93,9 @@ object EmbeddedNode {
     //    new Node(env, plugins) {}
 
     new Node(env, plugins, true) {
-      override def registerDerivedNodeNameWithLogger(name: String) {
-        println("Node.registerDerivedNodeNameWithLogger :: " + name)
-      }
+//      override def registerDerivedNodeNameWithLogger(name: String) {
+//        println("Node.registerDerivedNodeNameWithLogger :: " + name)
+//      }
     }
 
   }

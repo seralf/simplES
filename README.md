@@ -1,10 +1,16 @@
 simplES
 ====================================
 
-A Simple Elastic Search Tool
+A Simple Elastic Search Tool POC
 
 
-# TODO: update to latest version
+## instructions
+
+1. run `simples.MainEmbeddedNode`
+1. run `simples.MainMockES`
+
+
+## TODO: update to latest version
 
 
 + [ ] manage Future <-> Try
