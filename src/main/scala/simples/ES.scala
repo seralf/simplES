@@ -38,60 +38,7 @@ import java.io.File
 import org.elasticsearch.client.Client
 import org.slf4j.LoggerFactory
 
-object ESHelper {
 
-  import scala.collection.JavaConversions._
-  import scala.collection.JavaConverters._
-
-  def fromFile(_name: String) = Try {
-    val src = Source.fromFile(_name)("UTF-8")
-    val txt = src.getLines().mkString("\n")
-    src.close()
-    txt
-  }
-
-  def remote(filename: String): ESRemote = {
-
-    val _file = Paths.get(filename).toAbsolutePath().normalize().toFile()
-
-    // load hocon
-    val settings_content = ConfigFactory.empty()
-      .withFallback(ConfigFactory.parseFileAnySyntax(_file))
-
-    // load ES config from hocon
-    val settings = settings_content.getConfig("elasticsearch").entrySet()
-      .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
-      .build()
-
-    // initialize transport client
-    val client = new PreBuiltTransportClient(settings)
-    settings_content.getStringList("remote.hosts")
-      .map(_.trim().split(":"))
-      .foreach(e => client.addTransportAddress(new TransportAddress(InetAddress.getByName(e(0)), Integer.valueOf(e(1)))))
-
-    new ESRemote(client)
-
-  }
-
-  def local(filename: String): ESLocal = {
-
-    val _file = Paths.get(filename).toAbsolutePath().normalize().toFile()
-
-    // load hocon
-    val settings_content = ConfigFactory.empty()
-      .withFallback(ConfigFactory.parseFileAnySyntax(_file))
-
-    // load ES config from hocon
-    val settings = settings_content.getConfig("elasticsearch").entrySet()
-      .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
-      .build()
-
-    val node = EmbeddedNode(settings)
-    new ESLocal(node.client(), node)
-
-  }
-
-}
 
 // ---------------------------------------------------------------------
 
@@ -156,10 +103,10 @@ class ES(val client: Client) {
   }
 
   def mapping_read(_mapping_path: String): Try[String] =
-    ESHelper.fromFile(_mapping_path)
+    fromFile(_mapping_path)
 
   def settings_read(_settings_path: String): Try[String] =
-    ESHelper.fromFile(_settings_path)
+    fromFile(_settings_path)
 
   def index_exists(_index: String) = Try {
     client.admin().indices().prepareExists(_index).get.isExists()
@@ -214,17 +161,24 @@ class ES(val client: Client) {
 
   }
 
-  // REVIEW (from previous versions)
-  def search(query: String): Seq[Any] = {
+  //  // REVIEW (from previous versions)
+  //  def search(query: String): Seq[Any] = {
+  //
+  //    //    val response = client.prepareSearch("index1", "index2")
+  //    //      .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+  //    //      .setQuery(QueryBuilders.termQuery("multi", "test")) // Query
+  //    //      .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18)) // Filter
+  //    //      .setFrom(0).setSize(60).setExplain(true)
+  //    //      .get();
+  //
+  //    ???
+  //  }
 
-    //    val response = client.prepareSearch("index1", "index2")
-    //      .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-    //      .setQuery(QueryBuilders.termQuery("multi", "test")) // Query
-    //      .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18)) // Filter
-    //      .setFrom(0).setSize(60).setExplain(true)
-    //      .get();
-
-    ???
+  private def fromFile(_name: String) = Try {
+    val src = Source.fromFile(_name)("UTF-8")
+    val txt = src.getLines().mkString("\n")
+    src.close()
+    txt
   }
 
 }

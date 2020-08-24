@@ -26,22 +26,28 @@ import org.elasticsearch.index.reindex.ReindexPlugin
 import org.elasticsearch.analysis.common.CommonAnalysisPlugin
 import java.util.Collections
 import java.util.function.Supplier
+import simples.refactorization.EmbeddedNode
 
 object MainESLocal extends App {
 
-  val _file = Paths.get("src/main/resources/conf/es-local.conf").toAbsolutePath().normalize().toFile()
+  //  val _file = Paths.get("src/main/resources/conf/es-local.conf").toAbsolutePath().normalize().toFile()
+  //  // load hocon
+  //  val settings_content = ConfigFactory.empty()
+  //    .withFallback(ConfigFactory.parseFileAnySyntax(_file))
+  //  val settings = settings_content.getConfig("elasticsearch").entrySet()
+  //    .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
+  //    .build()
 
-  // load hocon
-  val settings_content = ConfigFactory.empty()
-    .withFallback(ConfigFactory.parseFileAnySyntax(_file))
-  val settings = settings_content.getConfig("elasticsearch").entrySet()
-    .foldRight(Settings.builder())((e, builder) => builder.put(e.getKey, e.getValue.unwrapped().toString()))
-    .build()
+  val node = EmbeddedNode.fromConfigFile("src/main/resources/conf/es-local.conf")
 
-  val node = EmbeddedNode(settings)
+  try {
+    val embedded = node.node
+    val es = new ESLocal(embedded.client(), embedded)
+    es.start().get
+  } catch {
+    case e: Exception => e.printStackTrace()
+  }
 
-  val es = new ESLocal(node.client(), node)
-  es.start()
 }
 
 class ESLocal(client: Client, node: Node) extends ES(client) {
@@ -51,7 +57,7 @@ class ESLocal(client: Client, node: Node) extends ES(client) {
     node.start()
     Thread.sleep(500)
 
-    super.start()
+    super.start().get
 
     logger.debug("ES> ESLocal started")
 
@@ -73,33 +79,3 @@ class ESLocal(client: Client, node: Node) extends ES(client) {
   }
 
 }
-
-object EmbeddedNode {
-
-  def apply(settings: Settings) = {
-
-    //    CHECK
-    //     Settings settings = InternalSettingsPreparer.prepareSettings(Settings.EMPTY);
-    //          Environment env = InternalSettingsPreparer.prepareEnvironment(baseEnvSettings, emptyMap(), null, () -> defaultNodeName);
-
-    val env = InternalSettingsPreparer.prepareEnvironment(settings, Collections.emptyMap(), null, null)
-
-    // REVIEW the plugins
-    val plugins: Collection[Class[_ <: Plugin]] = List(
-      classOf[Netty4Plugin],
-      classOf[ReindexPlugin],
-      classOf[CommonAnalysisPlugin])
-
-    //    new Node(env, plugins) {}
-
-    new Node(env, plugins, true) {
-//      override def registerDerivedNodeNameWithLogger(name: String) {
-//        println("Node.registerDerivedNodeNameWithLogger :: " + name)
-//      }
-    }
-
-  }
-
-}
-
-
