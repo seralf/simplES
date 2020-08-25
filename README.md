@@ -1,7 +1,9 @@
 simplES
 ====================================
 
-A Simple Elastic Search Tool POC
+A Simple Elastic Search Tool.
+
+This is a small POC for local testing / mocking a proper installation.
 
 
 ## example (GOT)
@@ -20,20 +22,11 @@ A simple example indexing descriptions for some of the Game of Thrones episodes.
 
 
 
-## TODO: update to latest version
+## TODO
 
-
-+ [ ] manage Future <-> Try
-
++ [ ] check latest libraries version
++ [ ] improve loading of settings / mapping from local JSON file
++ [ ] improve the exception handling
++ [ ] improve `Future` <-> `Try` interaction
 + [x] updated jackson to fix vulnerability
-
-SEE: https://github.com/seralf/simplES/network/alerts
-```
-<dependency>
-  <groupId>com.fasterxml.jackson.core</groupId>
-  <artifactId>jackson-databind</artifactId>
-  <version>[2.9.8,)</version>
-</dependency>
-```
-
 
