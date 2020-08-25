@@ -24,6 +24,7 @@ A simple example indexing descriptions for some of the Game of Thrones episodes.
 
 ## TODO
 
++ [ ] update deprecated TransportClient to new RestClient (for ES 8+)
 + [ ] check latest libraries version
 + [ ] improve loading of settings / mapping from local JSON file
 + [ ] improve the exception handling
